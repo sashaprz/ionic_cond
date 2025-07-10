@@ -7,7 +7,7 @@ composition = st.text_input("Enter composition (e.g. Li2O):")
 
 if st.button("Predict"):
     response = requests.post(
-        "http://localhost:5000/predict",
+        "https://ionic-cond-1.onrender.com/predict",
         json={"composition": composition}
     )
     if response.status_code == 200:

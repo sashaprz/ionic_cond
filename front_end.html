@@ -1,0 +1,97 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowRight, Zap } from 'lucide-react';
+
+const ChemicalInput = () => {
+  const [composition, setComposition] = useState('');
+  const [isValid, setIsValid] = useState(true);
+  const [result, setResult] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const validateComposition = (value: string) => {
+    const chemicalFormulaRegex = /^[A-Za-z0-9().\s]+$/;
+    return chemicalFormulaRegex.test(value) && value.trim().length > 0;
+  };
+
+  const handlePredict = async (composition: string) => {
+    setLoading(true);
+    setResult(null);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ composition }),
+      });
+
+      if (!response.ok) {
+        throw new Error('API error');
+      }
+
+      const data = await response.json();
+      setResult(data.prediction);
+    } catch (err) {
+      setError('Failed to get prediction. Is the backend running?');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const valid = validateComposition(composition);
+    setIsValid(valid);
+
+    if (valid) {
+      handlePredict(composition);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setComposition(value);
+    if (!isValid && value.trim().length > 0) {
+      setIsValid(validateComposition(value));
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl">
+        {/* ...your header and card code... */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* ...your input code... */}
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full h-12 text-lg font-semibold bg-blue-600 hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
+            disabled={!composition.trim()}
+          >
+            Predict Conductivity
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
+        </form>
+        {loading && (
+          <div className="mt-4 text-blue-600 text-lg">Predicting...</div>
+        )}
+        {result && (
+          <div className="mt-4 text-green-600 text-lg">
+            Predicted Ionic Conductivity: <strong>{result}</strong>
+          </div>
+        )}
+        {error && (
+          <div className="mt-4 text-red-600 text-lg">{error}</div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ChemicalInput;

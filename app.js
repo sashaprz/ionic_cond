@@ -12,7 +12,7 @@ function App() {
     setPrediction(null);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/predict`, {
+      const response = await fetch(`https://ionic-cond-1.onrender.com/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ composition }),
